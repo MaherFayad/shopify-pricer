@@ -38,6 +38,49 @@ body { font-family: var(--font-en); background: var(--bg); color: var(--text);
 /* Arabic mode */
 html[dir="rtl"] body { font-family: var(--font-ar); }
 
+/* Skip link — visible only on focus */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 8px;
+  z-index: 9999;
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: var(--rad-sm);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top .15s;
+}
+.skip-link:focus { top: 8px; }
+
+/* Screen-reader-only utility */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Global focus-visible ring */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--rad-sm);
+}
+
+/* Visually hide the file input but keep it accessible */
+#file-input {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }

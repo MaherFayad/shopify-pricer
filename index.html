@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shopify Pricer</title>
+  <title>Shopify Pricer — Price Calculator for Shopify CSV Imports</title>
+  <meta name="description" content="Upload Shopify CSV files, set exchange rates, duties, and profit margins to calculate and export re-priced products." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -15,109 +16,121 @@
 
 <body>
 
+  <!-- ══ SKIP LINK ══════════════════════════════════════════ -->
+  <a href="#main-area" class="skip-link">Skip to main content</a>
+
   <!-- ══ HEADER ══════════════════════════════════════════════ -->
-  <header id="app-header">
-    <div class="logo">
-      <span class="logo-icon">⚡</span>
+  <header id="app-header" role="banner">
+    <div class="logo" aria-label="Shopify Pricer">
+      <span class="logo-icon" aria-hidden="true">⚡</span>
       <span class="logo-text" data-t="appName">Shopify Pricer</span>
     </div>
 
-    <div class="header-center">
+    <div class="header-center" role="status" aria-live="polite" aria-atomic="true">
       <!-- File info shown after load -->
-      <div id="file-badge" class="file-badge hidden">
-        <span class="file-icon">📄</span>
+      <div id="file-badge" class="file-badge hidden" aria-label="Loaded file info">
+        <span class="file-icon" aria-hidden="true">📄</span>
         <span id="file-name-label">—</span>
-        <span class="sep">·</span>
+        <span class="sep" aria-hidden="true">·</span>
         <span id="header-count">0 products</span>
-        <button class="clear-btn" id="clear-btn" title="Load new file">✕</button>
+        <button class="clear-btn" id="clear-btn" aria-label="Clear current file and load a new one">✕</button>
       </div>
     </div>
 
-    <div class="header-actions">
+    <nav class="header-actions" aria-label="Toolbar">
       <!-- Export button -->
-      <button class="btn-export" id="export-btn" disabled data-t="exportBtn">📤 Export CSV</button>
+      <button class="btn-export" id="export-btn" disabled data-t="exportBtn" aria-label="Export re-priced CSV">📤 Export CSV</button>
       <!-- Language toggle -->
-      <button class="lang-toggle" id="lang-toggle" title="Switch language">
-        <span class="lang-en active" id="lang-en-label">EN</span>
-        <span class="lang-sep">|</span>
-        <span class="lang-ar" id="lang-ar-label">ع</span>
+      <button class="lang-toggle" id="lang-toggle" aria-label="Switch language between English and Arabic" aria-pressed="false">
+        <span class="lang-en active" id="lang-en-label" aria-hidden="true">EN</span>
+        <span class="lang-sep" aria-hidden="true">|</span>
+        <span class="lang-ar" id="lang-ar-label" aria-hidden="true">ع</span>
       </button>
-    </div>
+    </nav>
   </header>
 
   <!-- ══ MAIN LAYOUT ════════════════════════════════════════ -->
   <div id="app-body">
 
     <!-- ── CENTER: Upload / Table ─────────────────────────── -->
-    <main id="main-area">
+    <main id="main-area" role="main">
 
       <!-- UPLOAD STATE -->
       <div id="upload-view">
-        <div class="drop-zone" id="drop-zone">
-          <div class="drop-glow"></div>
+        <div class="drop-zone" id="drop-zone"
+             role="button"
+             tabindex="0"
+             aria-label="Drop zone: drop a Shopify CSV file here or press Enter/Space to browse"
+             aria-describedby="drop-sub-text">
+          <div class="drop-glow" aria-hidden="true"></div>
           <div class="drop-inner">
-            <div class="drop-icon">🗂️</div>
-            <h2 class="drop-title" data-t="dropTitle">Drop your Shopify CSV here</h2>
-            <p class="drop-sub" data-t="dropSub">or click to browse — supports all shopify_import_*.csv files</p>
-            <button class="btn-primary" id="browse-btn" data-t="browseBtn">Browse File</button>
-            <input type="file" id="file-input" accept=".csv" hidden />
+            <div class="drop-icon" aria-hidden="true">🗂️</div>
+            <h1 class="drop-title" data-t="dropTitle">Drop your Shopify CSV here</h1>
+            <p class="drop-sub" id="drop-sub-text" data-t="dropSub">or click to browse — supports all shopify_import_*.csv files</p>
+            <button class="btn-primary" id="browse-btn" data-t="browseBtn" aria-label="Browse and select a CSV file from your computer">Browse File</button>
+            <input type="file" id="file-input" accept=".csv" aria-label="Select CSV file" />
           </div>
         </div>
 
-        <div class="quick-chips">
-          <span class="chip-label" data-t="quickLoad">Quick load:</span>
-          <button class="chip" data-file="Dungarees" data-t-label="Dungarees">🧥 Dungarees</button>
-          <button class="chip" data-file="Hats" data-t-label="Hats">🎩 Hats</button>
-          <button class="chip" data-file="Sleepsuits" data-t-label="Sleepsuits">😴 Sleepsuits</button>
-          <button class="chip" data-file="Socks" data-t-label="Socks">🧦 Socks</button>
-          <button class="chip" data-file="blankets" data-t-label="Blankets">🛏️ Blankets</button>
-          <button class="chip" data-file="sets" data-t-label="Sets">👶 Sets</button>
-          <button class="chip" data-file="swimsuits" data-t-label="Swimsuits">🩱 Swimsuits</button>
-          <button class="chip" data-file="all_products" data-t-label="All">📦 All</button>
-        </div>
+        <nav class="quick-chips" aria-label="Quick load Shopify import files">
+          <span class="chip-label" data-t="quickLoad" id="chip-label">Quick load:</span>
+          <button class="chip" data-file="Dungarees" aria-label="Quick load Dungarees CSV">🧥 Dungarees</button>
+          <button class="chip" data-file="Hats" aria-label="Quick load Hats CSV">🎩 Hats</button>
+          <button class="chip" data-file="Sleepsuits" aria-label="Quick load Sleepsuits CSV">😴 Sleepsuits</button>
+          <button class="chip" data-file="Socks" aria-label="Quick load Socks CSV">🧦 Socks</button>
+          <button class="chip" data-file="blankets" aria-label="Quick load Blankets CSV">🛏️ Blankets</button>
+          <button class="chip" data-file="sets" aria-label="Quick load Sets CSV">👶 Sets</button>
+          <button class="chip" data-file="swimsuits" aria-label="Quick load Swimsuits CSV">🩱 Swimsuits</button>
+          <button class="chip" data-file="all_products" aria-label="Quick load All Products CSV">📦 All</button>
+        </nav>
       </div>
 
       <!-- TABLE STATE -->
       <div id="table-view" class="hidden">
         <!-- Search bar above table -->
-        <div class="table-bar">
+        <div class="table-bar" role="search">
           <div class="search-wrap">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon" aria-hidden="true">🔍</span>
             <input type="text" id="search-input" class="search-input" data-t-placeholder="searchPlaceholder"
-              placeholder="Search products…" />
+              placeholder="Search products…"
+              aria-label="Search products by name or vendor"
+              autocomplete="off"
+              role="searchbox" />
           </div>
-          <select id="filter-vendor" class="vendor-select">
+          <label for="filter-vendor" class="sr-only">Filter by vendor</label>
+          <select id="filter-vendor" class="vendor-select" aria-label="Filter products by vendor">
             <option value="" data-t="allVendors">All Vendors</option>
           </select>
-          <div class="table-stats">
-            <span id="stat-count" class="stat-pill">—</span>
-            <span id="stat-avg" class="stat-pill accent">—</span>
+          <div class="table-stats" aria-live="polite" aria-atomic="true">
+            <span id="stat-count" class="stat-pill" aria-label="Product count">—</span>
+            <span id="stat-avg" class="stat-pill accent" aria-label="Average price">—</span>
           </div>
         </div>
 
         <!-- Table -->
-        <div class="table-wrap" id="table-wrap">
-          <table id="product-table">
+        <div class="table-wrap" id="table-wrap" role="region" aria-label="Products table" tabindex="0">
+          <table id="product-table" aria-label="Shopify products with calculated prices">
             <thead id="table-head"></thead>
-            <tbody id="table-body"></tbody>
+            <tbody id="table-body" aria-live="polite"></tbody>
           </table>
         </div>
       </div>
     </main>
 
     <!-- ── RIGHT PANEL: Settings ──────────────────────────── -->
-    <aside id="right-panel">
+    <aside id="right-panel" aria-label="Pricing settings">
 
       <!-- ① Currency -->
-      <div class="panel-section">
+      <section class="panel-section" aria-labelledby="currency-heading">
         <div class="section-title">
-          <span>💱</span> <span data-t="currencyTitle">Currency</span>
-          <span class="rate-pill" id="rate-pill">—</span>
+          <span aria-hidden="true">💱</span>
+          <h2 id="currency-heading" data-t="currencyTitle">Currency</h2>
+          <span class="rate-pill" id="rate-pill" aria-live="polite" aria-label="Current exchange rate">—</span>
         </div>
 
         <div class="field">
-          <label data-t="targetCurrencyLabel">Target Currency</label>
-          <select id="target-currency" class="field-input">
+          <label for="target-currency" data-t="targetCurrencyLabel">Target Currency</label>
+          <select id="target-currency" class="field-input" aria-describedby="rate-pill">
             <option value="USD">USD — US Dollar</option>
             <option value="EUR">EUR — Euro</option>
             <option value="GBP">GBP — British Pound</option>
@@ -126,54 +139,61 @@
             <option value="OMR">OMR — Omani Rial</option>
             <option value="BHD">BHD — Bahraini Dinar</option>
             <option value="QAR">QAR — Qatari Riyal</option>
-            <option value="EGP">EGP — Egyptian Pound</option>
+            <option value="EGP" selected>EGP — Egyptian Pound</option>
             <option value="JOD">JOD — Jordanian Dinar</option>
             <option value="AED">AED — Keep in AED</option>
           </select>
         </div>
 
         <div class="field">
-          <label data-t="rateLabel">Exchange Rate <small>(1 AED = ?)</small></label>
-          <input type="number" id="exchange-rate" class="field-input" value="0.2722" step="0.0001" min="0.0001" />
+          <label for="exchange-rate" data-t="rateLabel">Exchange Rate <small>(1 AED = ?)</small></label>
+          <input type="number" id="exchange-rate" class="field-input" value="8.5" step="0.0001" min="0.0001"
+                 aria-label="Exchange rate: how many target currency units equal 1 AED" />
         </div>
-      </div>
+      </section>
 
       <!-- ② Duties -->
-      <div class="panel-section">
+      <section class="panel-section" aria-labelledby="duties-heading">
         <div class="section-title">
-          <span>🛃</span> <span data-t="dutiesTitle">Import & Customs</span>
+          <span aria-hidden="true">🛃</span>
+          <h2 id="duties-heading" data-t="dutiesTitle">Import &amp; Customs</h2>
         </div>
 
         <div class="field">
-          <label data-t="customsLabel">Customs Fee <small>(%)</small></label>
-          <input type="number" id="customs-rate" class="field-input" value="5" step="0.5" min="0" max="100" />
+          <label for="customs-rate" data-t="customsLabel">Customs Fee <small>(%)</small></label>
+          <input type="number" id="customs-rate" class="field-input" value="5" step="0.5" min="0" max="100"
+                 aria-label="Customs fee percentage" />
         </div>
 
         <div class="field">
-          <label data-t="importLabel">Import / Shipping <small>(%)</small></label>
-          <input type="number" id="import-rate" class="field-input" value="10" step="0.5" min="0" max="100" />
+          <label for="import-rate" data-t="importLabel">Import / Shipping <small>(%)</small></label>
+          <input type="number" id="import-rate" class="field-input" value="10" step="0.5" min="0" max="100"
+                 aria-label="Import and shipping percentage" />
         </div>
 
         <div class="field">
-          <label data-t="vatLabel">VAT / Local Tax <small>(%)</small></label>
-          <input type="number" id="vat-rate" class="field-input" value="0" step="0.5" min="0" max="100" />
+          <label for="vat-rate" data-t="vatLabel">VAT / Local Tax <small>(%)</small></label>
+          <input type="number" id="vat-rate" class="field-input" value="0" step="0.5" min="0" max="100"
+                 aria-label="VAT or local tax percentage" />
         </div>
-      </div>
+      </section>
 
       <!-- ③ Profit -->
-      <div class="panel-section">
+      <section class="panel-section" aria-labelledby="profit-heading">
         <div class="section-title">
-          <span>💰</span> <span data-t="profitTitle">Profit Margin</span>
+          <span aria-hidden="true">💰</span>
+          <h2 id="profit-heading" data-t="profitTitle">Profit Margin</h2>
         </div>
 
         <div class="field">
-          <label data-t="marginLabel">Margin <small>(%)</small></label>
-          <input type="number" id="profit-margin" class="field-input highlight" value="35" step="0.5" min="0" />
+          <label for="profit-margin" data-t="marginLabel">Margin <small>(%)</small></label>
+          <input type="number" id="profit-margin" class="field-input highlight" value="35" step="0.5" min="0"
+                 aria-label="Profit margin percentage" />
         </div>
 
         <div class="field">
-          <label data-t="roundingLabel">Price Rounding</label>
-          <select id="rounding-mode" class="field-input">
+          <label for="rounding-mode" data-t="roundingLabel">Price Rounding</label>
+          <select id="rounding-mode" class="field-input" aria-label="Choose how final prices should be rounded">
             <option value="none" data-t="roundNone">No rounding</option>
             <option value="0.99" selected data-t="round99">Round up to .99</option>
             <option value="0.5" data-t="round50">To .00 or .50</option>
@@ -183,57 +203,62 @@
         </div>
 
         <div class="field">
-          <label data-t="minPriceLabel">Minimum Price</label>
-          <input type="number" id="min-price" class="field-input" value="0" step="1" min="0" />
+          <label for="min-price" data-t="minPriceLabel">Minimum Price</label>
+          <input type="number" id="min-price" class="field-input" value="0" step="1" min="0"
+                 aria-label="Minimum allowed price after calculation" />
         </div>
-      </div>
+      </section>
 
       <!-- ④ Compare-at -->
-      <div class="panel-section">
+      <section class="panel-section" aria-labelledby="compare-heading">
         <div class="section-title">
-          <span>🏷️</span> <span data-t="compareTitle">Discount Price</span>
-          <label class="toggle-label">
-            <input type="checkbox" id="compare-at-enabled" />
-            <span class="toggle-track"></span>
+          <span aria-hidden="true">🏷️</span>
+          <h2 id="compare-heading" data-t="compareTitle">Discount Price</h2>
+          <label class="toggle-label" aria-label="Enable compare-at discount price">
+            <input type="checkbox" id="compare-at-enabled" aria-describedby="compare-heading" />
+            <span class="toggle-track" aria-hidden="true"></span>
           </label>
         </div>
         <div class="field hidden" id="compare-at-field">
-          <label data-t="compareMarkupLabel">Markup above sale <small>(%)</small></label>
-          <input type="number" id="compare-at-markup" class="field-input" value="20" step="0.5" min="0" />
+          <label for="compare-at-markup" data-t="compareMarkupLabel">Markup above sale <small>(%)</small></label>
+          <input type="number" id="compare-at-markup" class="field-input" value="20" step="0.5" min="0"
+                 aria-label="Percentage markup above sale price for the compare-at price" />
         </div>
-      </div>
+      </section>
 
-      <!-- ⑤ Price preview (mini, not a section header calculator) -->
-      <div class="panel-section preview-section">
+      <!-- ⑤ Price preview -->
+      <section class="panel-section preview-section" aria-labelledby="preview-heading" aria-live="polite" aria-atomic="true">
         <div class="section-title">
-          <span>🔢</span> <span data-t="previewTitle">Example: 112 AED →</span>
+          <span aria-hidden="true">🔢</span>
+          <h2 id="preview-heading" data-t="previewTitle">Example: 112 AED →</h2>
         </div>
         <div class="preview-grid">
           <span data-t="previewFinal">Final price</span><span id="pv-final" class="pv-val green">—</span>
           <span data-t="previewCompare">After Discount</span><span id="pv-compare" class="pv-val muted">—</span>
         </div>
-      </div>
+      </section>
 
       <!-- Export options (compact) -->
-      <div class="panel-section">
+      <section class="panel-section" aria-labelledby="export-heading">
         <div class="section-title">
-          <span>⚙️</span> <span data-t="exportTitle">Export Options</span>
+          <span aria-hidden="true">⚙️</span>
+          <h2 id="export-heading" data-t="exportTitle">Export Options</h2>
         </div>
         <div class="field">
-          <label data-t="exportStatusLabel">Product Status</label>
-          <select id="export-status" class="field-input">
+          <label for="export-status" data-t="exportStatusLabel">Product Status</label>
+          <select id="export-status" class="field-input" aria-label="Set product status in exported CSV">
             <option value="keep" data-t="keepStatus">Keep original</option>
             <option value="active" data-t="activeStatus">Force Active</option>
             <option value="draft" data-t="draftStatus">Force Draft</option>
           </select>
         </div>
-      </div>
+      </section>
 
     </aside>
   </div>
 
-  <!-- Toast -->
-  <div id="toast" class="toast hidden"></div>
+  <!-- Toast: live region for screen readers -->
+  <div id="toast" class="toast hidden" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
   <script src="app.js"></script>
 </body>

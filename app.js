@@ -28,7 +28,7 @@ const T = {
     round5: 'Nearest 5',
     minPriceLabel: 'Minimum Price',
     compareTitle: 'Discount Price',
-    compareMarkupLabel: 'Markup above sale (%)',
+    compareMarkupLabel: 'Discount above sale (%)',
     previewTitle: 'Example: 112 AED →',
     previewFinal: 'Final price',
     previewCompare: 'After Discount',
@@ -83,7 +83,7 @@ const T = {
     round5: 'أقرب 5',
     minPriceLabel: 'الحد الأدنى للسعر',
     compareTitle: 'سعر الخصم',
-    compareMarkupLabel: 'نسبة فوق سعر البيع (%)',
+    compareMarkupLabel: 'خصم فوق سعر البيع (%)',
     previewTitle: 'مثال: ١١٢ درهم →',
     previewFinal: 'السعر النهائي',
     previewCompare: 'بعد الخصم',
@@ -165,6 +165,7 @@ function applyLang() {
 
 document.getElementById('lang-toggle').addEventListener('click', () => {
   lang = lang === 'en' ? 'ar' : 'en';
+  document.getElementById('lang-toggle').setAttribute('aria-pressed', String(lang === 'ar'));
   applyLang();
 });
 
@@ -201,7 +202,7 @@ function calcPrice(aed, s) {
   p = Math.max(p, s.minPrice);
   p = round(p, s.rounding);
   const cmp = s.compareOn && s.compareMarkup > 0
-    ? round(p * (1 + s.compareMarkup / 100), s.rounding)
+    ? round(p * (1 - s.compareMarkup / 100), s.rounding)
     : null;
   return { price: p, compareAt: cmp };
 }
@@ -379,7 +380,17 @@ const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 
 document.getElementById('browse-btn').addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
-dropZone.addEventListener('click', () => fileInput.click());
+
+// Clicking the drop zone itself (not on the Browse button) → open picker
+dropZone.addEventListener('click', e => {
+  if (e.target.id !== 'browse-btn') fileInput.click();
+});
+
+// Keyboard activation on the drop zone (Enter / Space)
+dropZone.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+});
+
 fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
 
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
@@ -391,12 +402,37 @@ dropZone.addEventListener('drop', e => {
   else showToast('Please drop a .csv file', 'error');
 });
 
+// ─── QUICK-LOAD CHIPS: fetch CSV directly from Shopify Import folder ────────
 document.querySelectorAll('.chip').forEach(btn => {
-  btn.addEventListener('click', () => {
-    showToast(lang === 'ar'
-      ? `استعرض ملف shopify_import_${btn.dataset.file}.csv`
-      : `Browse for shopify_import_${btn.dataset.file}.csv`, 'info');
-    fileInput.click();
+  btn.addEventListener('click', async () => {
+    const key = btn.dataset.file;
+    const fileName = `shopify_import_${key}.csv`;
+    const url = `Shopify Import/${fileName}`;
+
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    showToast(lang === 'ar' ? `جاري تحميل ${fileName}…` : `Loading ${fileName}…`, 'info');
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const text = await resp.text();
+      // Synthesise a File-like object so loadFile works unchanged
+      const file = new File([text], fileName, { type: 'text/csv' });
+      loadFile(file);
+    } catch (err) {
+      // Fallback: open file picker so user can locate it manually
+      showToast(
+        lang === 'ar'
+          ? `تعذّر تحميل الملف تلقائياً — يرجى تحديده يدوياً`
+          : `Could not auto-load ${fileName} — please select it manually`,
+        'error'
+      );
+      fileInput.click();
+    } finally {
+      btn.disabled = false;
+      btn.style.opacity = '';
+    }
   });
 });
 
@@ -551,8 +587,14 @@ function exportCSV() {
     const orig = parseFloat(row['Price']);
     if (!isNaN(orig) && orig > 0) {
       const calc = calcPrice(orig, s);
-      r['Price'] = calc.price.toFixed(2);
-      if (s.compareOn && calc.compareAt) r['Compare-at price'] = calc.compareAt.toFixed(2);
+      if (s.compareOn && calc.compareAt) {
+        // Shopify: Price = what customer pays (discounted/lower)
+        //          Compare-at price = the "was" price (full calc, shown crossed out)
+        r['Price'] = calc.compareAt.toFixed(2);
+        r['Compare-at price'] = calc.price.toFixed(2);
+      } else {
+        r['Price'] = calc.price.toFixed(2);
+      }
     }
     if (s.exportStatus !== 'keep' && row['Status']) {
       r['Status'] = s.exportStatus === 'active' ? 'Active' : 'Draft';
