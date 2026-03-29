@@ -452,6 +452,18 @@ function loadFile(file) {
     try {
       const { headers, rows } = parseCSV(e.target.result);
       if (!headers.length) throw new Error('Empty CSV');
+
+      // Normalize multi-value Product category fields at parse time
+      // e.g. "sets, Dungarees" → "Dungarees" (keeps last/most specific part)
+      const catKey = 'Product category';
+      if (headers.includes(catKey)) {
+        rows.forEach(r => {
+          if (r[catKey] && r[catKey].includes(',')) {
+            r[catKey] = r[catKey].split(',').map(v => v.trim()).filter(Boolean).pop() || r[catKey];
+          }
+        });
+      }
+
       state.headers = headers;
       state.rawRows = rows;
       state.products = groupProducts(rows);
