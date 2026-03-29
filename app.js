@@ -327,7 +327,10 @@ function parseCSV(text) {
   let cur = '', inQ = false;
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
-    if (ch === '"') { if (inQ && text[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+    if (ch === '"') {
+      if (inQ && text[i + 1] === '"') { cur += '""'; i++; } // escaped quote → keep both chars
+      else { inQ = !inQ; cur += ch; }                       // opening/closing quote → keep it so splitLine sees it
+    }
     else if (ch === '\n' && !inQ) { lines.push(cur.replace(/\r$/, '')); cur = ''; }
     else cur += ch;
   }
@@ -629,13 +632,10 @@ function exportCSV() {
     if (s.exportStatus !== 'keep' && row['Status']) {
       r['Status'] = s.exportStatus === 'active' ? 'Active' : 'Draft';
     }
-    // Normalize Product category: "sets, Dungarees" → "Dungarees"
-    // Multi-value categories cause Excel to visually misalign columns
-    const catKey = 'Product category';
-    if (r[catKey] && r[catKey].includes(',')) {
-      // Keep only the last (most specific) value
-      r[catKey] = r[catKey].split(',').map(v => v.trim()).filter(Boolean).pop() || r[catKey];
-    }
+    // Clear Product category — scraped values (e.g. "Sleepsuits", "sets") are not valid
+    // Shopify taxonomy IDs and cause "invalid product category" errors on import.
+    // Shopify will simply leave it unset, which is safe.
+    if ('Product category' in r) r['Product category'] = '';
     return r;
   });
 
