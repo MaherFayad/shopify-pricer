@@ -612,7 +612,14 @@ function exportCSV() {
   if (!state.rawRows.length) return;
   const s = S();
 
-  const modified = state.rawRows.map(row => {
+  // Exclude phantom/zero-price rows from export (they'd create $0 variants in Shopify)
+  const exportRows = state.rawRows.filter(row => {
+    const price = parseFloat(row['Price']);
+    // Keep: rows with a title (product header rows) or rows with a real price
+    return row['Title']?.trim() || (price > 0);
+  });
+
+  const modified = exportRows.map(row => {
     const r = { ...row };
     // Always clear Compare-at price first — prevents stale AED values bleeding through
     r['Compare-at price'] = '';
@@ -639,13 +646,16 @@ function exportCSV() {
     return r;
   });
 
-  const csv = [
+  const csvText = [
     state.headers.map(csvCell).join(','),
     ...modified.map(row => state.headers.map(h => csvCell(row[h] ?? '')).join(','))
   ].join('\r\n');
 
   const fname = (state.fileName || 'shopify').replace('.csv', '') + `_${s.currency}_priced.csv`;
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  // Prepend UTF-8 BOM (\uFEFF) so Excel auto-detects encoding and renders
+  // accented characters (é, ü, etc.) and Arabic text correctly
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + csvText], { type: 'text/csv;charset=utf-8;' });
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: fname });
   a.click(); URL.revokeObjectURL(a.href);
   showToast(t('exportDone'), 'success');
@@ -653,7 +663,9 @@ function exportCSV() {
 
 function csvCell(v) {
   const s = String(v ?? '');
-  return (s.includes(',') || s.includes('"') || s.includes('\n'))
+  // Quote if contains comma, double-quote, newline OR bare carriage return
+  // (bare \r without \n causes Excel to treat the field as a line break)
+  return (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r'))
     ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 
