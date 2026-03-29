@@ -617,6 +617,13 @@ function exportCSV() {
     if (s.exportStatus !== 'keep' && row['Status']) {
       r['Status'] = s.exportStatus === 'active' ? 'Active' : 'Draft';
     }
+    // Normalize Product category: "sets, Dungarees" → "Dungarees"
+    // Multi-value categories cause Excel to visually misalign columns
+    const catKey = 'Product category';
+    if (r[catKey] && r[catKey].includes(',')) {
+      // Keep only the last (most specific) value
+      r[catKey] = r[catKey].split(',').map(v => v.trim()).filter(Boolean).pop() || r[catKey];
+    }
     return r;
   });
 
