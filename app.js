@@ -372,9 +372,11 @@ function groupProducts(rows) {
   products.forEach(p => {
     p.variants = p.rows.filter(r => {
       if (!r['SKU'] || !r['SKU'].trim()) return false;
-      // Skip Shopify CSV placeholder rows where the option value = option name (e.g., "Size" = "Size")
-      const optName = (r['Option1 name'] || '').trim().toLowerCase();
-      const optVal  = (r['Option1 value'] || '').trim().toLowerCase();
+      // Skip phantom rows that have zero/missing price (always a Shopify CSV placeholder)
+      if (!(parseFloat(r['Price']) > 0)) return false;
+      // Also skip rows where Option1 value literally equals Option1 name (e.g., "Size" = "Size")
+      const optName = (r['Option1 name'] || r['Option1 Name'] || '').trim().toLowerCase();
+      const optVal  = (r['Option1 value'] || r['Option1 Value'] || '').trim().toLowerCase();
       if (optName && optVal && optName === optVal) return false;
       return true;
     });
@@ -595,12 +597,13 @@ function exportCSV() {
     if (!isNaN(orig) && orig > 0) {
       const calc = calcPrice(orig, s);
       if (s.compareOn && calc.compareAt) {
-        // Shopify: Price = what customer pays (discounted/lower)
-        //          Compare-at price = the "was" price (full calc, shown crossed out)
+        // Discount ON: Price = discounted (lower), Compare-at = full price (crossed out in Shopify)
         r['Price'] = calc.compareAt.toFixed(2);
         r['Compare-at price'] = calc.price.toFixed(2);
       } else {
+        // Discount OFF: write calculated price and always wipe any pre-existing compare-at
         r['Price'] = calc.price.toFixed(2);
+        r['Compare-at price'] = '';
       }
     }
     if (s.exportStatus !== 'keep' && row['Status']) {
