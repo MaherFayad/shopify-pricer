@@ -370,7 +370,14 @@ function groupProducts(rows) {
     } else if (current) current.rows.push(row);
   });
   products.forEach(p => {
-    p.variants = p.rows.filter(r => r['SKU'] && r['SKU'].trim());
+    p.variants = p.rows.filter(r => {
+      if (!r['SKU'] || !r['SKU'].trim()) return false;
+      // Skip Shopify CSV placeholder rows where the option value = option name (e.g., "Size" = "Size")
+      const optName = (r['Option1 name'] || '').trim().toLowerCase();
+      const optVal  = (r['Option1 value'] || '').trim().toLowerCase();
+      if (optName && optVal && optName === optVal) return false;
+      return true;
+    });
   });
   return products;
 }
