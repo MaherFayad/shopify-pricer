@@ -474,13 +474,19 @@ function loadFile(file) {
   reader.readAsText(file, 'utf-8');
 }
 
-document.getElementById('clear-btn').addEventListener('click', () => {
+function resetToUpload() {
   state.rawRows = []; state.products = []; state.headers = []; state.fileName = '';
   showUpload(true);
   document.getElementById('export-btn').disabled = true;
   document.getElementById('file-badge').classList.add('hidden');
   fileInput.value = '';
-});
+}
+
+document.getElementById('clear-btn').addEventListener('click', resetToUpload);
+
+// Logo click → back to upload view
+document.querySelector('.logo').addEventListener('click', resetToUpload);
+document.querySelector('.logo').style.cursor = 'pointer';
 
 function showUpload(yes) {
   document.getElementById('upload-view').classList.toggle('hidden', !yes);
@@ -593,6 +599,9 @@ function exportCSV() {
 
   const modified = state.rawRows.map(row => {
     const r = { ...row };
+    // Always clear Compare-at price first — prevents stale AED values bleeding through
+    r['Compare-at price'] = '';
+
     const orig = parseFloat(row['Price']);
     if (!isNaN(orig) && orig > 0) {
       const calc = calcPrice(orig, s);
@@ -601,9 +610,8 @@ function exportCSV() {
         r['Price'] = calc.compareAt.toFixed(2);
         r['Compare-at price'] = calc.price.toFixed(2);
       } else {
-        // Discount OFF: write calculated price and always wipe any pre-existing compare-at
+        // Discount OFF: just write the calculated price, compare-at stays ''
         r['Price'] = calc.price.toFixed(2);
-        r['Compare-at price'] = '';
       }
     }
     if (s.exportStatus !== 'keep' && row['Status']) {
